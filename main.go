@@ -43,7 +43,7 @@ func (app *App) SetupRoutes() {
 }
 
 func (app *App) booksCreate(c echo.Context) error {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+	ctx, cancel := context.WithTimeout(c.Request().Context(), time.Second*5)
 	defer cancel()
 
 	var book models.Book
@@ -62,7 +62,7 @@ func (app *App) booksCreate(c echo.Context) error {
 }
 
 func (app *App) booksIndex(c echo.Context) error {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+	ctx, cancel := context.WithTimeout(c.Request().Context(), time.Second*5)
 	defer cancel()
 
 	bks, err := app.books.All(ctx)
