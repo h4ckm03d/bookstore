@@ -16,6 +16,7 @@ type App struct {
 
 	books interface {
 		All(context.Context) ([]models.Book, error)
+		Create(context.Context, *models.Book) error
 	}
 }
 
@@ -38,6 +39,26 @@ func main() {
 
 func (app *App) SetupRoutes() {
 	app.GET("/books", app.booksIndex)
+	app.POST("/books", app.booksCreate)
+}
+
+func (app *App) booksCreate(c echo.Context) error {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+	defer cancel()
+
+	var book models.Book
+	if err := c.Bind(&book); err != nil {
+		c.JSON(400, "invalid data")
+		return err
+	}
+
+	err := app.books.Create(ctx, &book)
+	if err != nil {
+		c.JSON(500, map[string]string{"error": "internal server error"})
+		return err
+	}
+
+	return c.JSON(200, book)
 }
 
 func (app *App) booksIndex(c echo.Context) error {

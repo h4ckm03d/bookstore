@@ -7,10 +7,10 @@ import (
 )
 
 type Book struct {
-	Isbn   string
-	Title  string
-	Author string
-	Price  float32
+	Isbn   string  `json:"isbn,omitempty"`
+	Title  string  `json:"title,omitempty"`
+	Author string  `json:"author,omitempty"`
+	Price  float32 `json:"price,omitempty"`
 }
 
 // Create a custom BookModel type which wraps the sql.DB connection pool.
@@ -26,4 +26,12 @@ func (m BookModel) All(ctx context.Context) ([]Book, error) {
 	}
 
 	return bks, nil
+}
+
+func (m BookModel) Create(ctx context.Context, book *Book) error {
+	if err := m.DB.Create(book).Error; err != nil {
+		return err
+	}
+
+	return nil
 }
