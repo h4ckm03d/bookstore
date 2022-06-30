@@ -23,7 +23,7 @@ func TestBooksIndex(t *testing.T) {
 	rec := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/books", nil)
 
-	env := Env{books: &mockBookModel{}}
+	env := App{books: &mockBookModel{}}
 
 	http.HandlerFunc(env.booksIndex).ServeHTTP(rec, req)
 

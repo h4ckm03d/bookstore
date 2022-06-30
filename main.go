@@ -2,52 +2,53 @@ package main
 
 import (
 	"context"
-	"database/sql"
-	"encoding/json"
-	"fmt"
-	"log"
-	"net/http"
 	"time"
 
 	"bookstore.splindid/models"
+	"gorm.io/driver/mysql"
+	"gorm.io/gorm"
 
-	_ "github.com/go-sql-driver/mysql"
+	"github.com/labstack/echo/v4"
 )
 
-type Env struct {
-	// Replace the reference to models.BookModel with an interface
-	// describing its methods instead. All the other code remains exactly
-	// the same.
+type App struct {
+	*echo.Echo
+
 	books interface {
 		All(context.Context) ([]models.Book, error)
 	}
 }
 
 func main() {
-	db, err := sql.Open("mysql", "root:123456@/bookstore")
+
+	db, err := gorm.Open(mysql.Open("root:123456@/bookstore"), &gorm.Config{
+		SkipDefaultTransaction: true,
+	})
 	if err != nil {
-		log.Fatal(err)
+		panic("failed to connect database")
 	}
 
-	env := &Env{
+	app := &App{
 		books: models.BookModel{DB: db},
+		Echo:  echo.New(),
 	}
-
-	http.HandleFunc("/books", env.booksIndex)
-	fmt.Println("starting server at :3000")
-	http.ListenAndServe(":3000", nil)
+	app.SetupRoutes()
+	app.Logger.Fatal(app.Start(":3000"))
 }
 
-func (env *Env) booksIndex(w http.ResponseWriter, r *http.Request) {
+func (app *App) SetupRoutes() {
+	app.GET("/books", app.booksIndex)
+}
+
+func (app *App) booksIndex(c echo.Context) error {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
 	defer cancel()
 
-	bks, err := env.books.All(ctx)
+	bks, err := app.books.All(ctx)
 	if err != nil {
-		log.Print(err)
-		http.Error(w, http.StatusText(500), 500)
-		return
+		c.JSON(500, map[string]string{"error": "internal server error"})
+		return err
 	}
 
-	json.NewEncoder(w).Encode(bks)
+	return c.JSON(200, bks)
 }
