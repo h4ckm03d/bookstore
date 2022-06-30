@@ -5,7 +5,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"bookstore.majoo/models"
+	"bookstore.splindid/models"
 )
 
 type mockBookModel struct{}

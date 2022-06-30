@@ -1,4 +1,4 @@
-module bookstore.majoo
+module bookstore.splindid
 
 go 1.18
 
