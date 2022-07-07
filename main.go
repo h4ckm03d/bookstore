@@ -2,13 +2,18 @@ package main
 
 import (
 	"context"
+	"net/http"
 	"time"
 
 	"bookstore.splindid/models"
+	"bookstore.splindid/pkg/ratelimit"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 
+	"github.com/go-redis/redis/v8"
+	"github.com/go-redis/redis_rate/v9"
 	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 )
 
 type App struct {
@@ -38,6 +43,32 @@ func main() {
 }
 
 func (app *App) SetupRoutes() {
+
+	app.Use(middleware.Logger())
+
+	rdb := redis.NewClient(&redis.Options{
+		Addr:     "127.0.0.1:6379",
+		Password: "eYVX7EwVmmxKPCDmwMtyKVge8oLd2t81",
+		DB:       0, // use default DB
+	})
+	redis_rate.PerMinute(10)
+	config := middleware.RateLimiterConfig{
+		Skipper: middleware.DefaultSkipper,
+		Store:   ratelimit.NewRedisRateLimiter(rdb, redis_rate.PerMinute(10)),
+		IdentifierExtractor: func(ctx echo.Context) (string, error) {
+			id := ctx.RealIP()
+			return id, nil
+		},
+		ErrorHandler: func(context echo.Context, err error) error {
+			return context.JSON(http.StatusForbidden, nil)
+		},
+		DenyHandler: func(context echo.Context, identifier string, err error) error {
+			return context.JSON(http.StatusTooManyRequests, nil)
+		},
+	}
+
+	app.Use(middleware.RateLimiterWithConfig(config))
+
 	app.GET("/books", app.booksIndex)
 	app.POST("/books", app.booksCreate)
 }

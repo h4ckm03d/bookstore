@@ -9,3 +9,14 @@ services:
       - MYSQL_USER_DB=bookstore
     volumes:
       - $PWD/.data/mysql:/var/lib/mysql
+  cache:
+    image: redis:7.0.2-alpine
+    restart: always
+    ports:
+      - '6379:6379'
+    command: redis-server --save 20 1 --loglevel warning --requirepass eYVX7EwVmmxKPCDmwMtyKVge8oLd2t81
+    volumes: 
+      - $PWD/.data/redis:/data
+volumes:
+  cache:
+    driver: local
