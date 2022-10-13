@@ -1,5 +1,0 @@
-package books
-
-func init() {
-
-}
