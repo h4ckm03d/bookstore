@@ -6,6 +6,8 @@ name: release-please
 jobs:
   release-please:
     runs-on: ubuntu-latest
+    env:
+      BRANCH_NAME: ${{ github.head_ref || github.ref_name }} 
     steps:
       - uses: GoogleCloudPlatform/release-please-action@v3
         id: release
@@ -13,4 +15,4 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           release-type: go
           package-name: standard-version
-          default-branch: ${{GITHUB_REF}}
+          default-branch: ${{ BRANCH_NAME }}
