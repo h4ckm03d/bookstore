@@ -13,4 +13,4 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           release-type: go
           package-name: standard-version
-          default-branch: ${{GITHUB_REF}}
+          default-branch: ${{ github.head_ref || github.ref_name }} 
